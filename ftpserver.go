@@ -18,15 +18,15 @@ import (
 type FTPServerOpts struct {
 	// The factory that will be used to create a new FTPDriver instance for
 	// each client connection. This is a mandatory option.
-	Factory   FTPDriverFactory
+	Factory FTPDriverFactory
 
 	// The hostname that the FTP server should listen on. Optional, defaults to
 	// "::", which means all hostnames on ipv4 and ipv6.
-	Hostname  string
+	Hostname string
 
 	// The port that the FTP should listen on. Optional, defaults to 3000. In
 	// a production environment you will probably want to change this to 21.
-	Port      int
+	Port int
 }
 
 // FTPServer is the root of your FTP application. You should instantiate one
@@ -38,6 +38,7 @@ type FTPServer struct {
 	listenTo      string
 	driverFactory FTPDriverFactory
 	logger        *ftpLogger
+	hostName      string
 }
 
 // serverOptsWithDefaults copies an FTPServerOpts struct into a new struct,
@@ -86,6 +87,7 @@ func NewFTPServer(opts *FTPServerOpts) *FTPServer {
 	s.name = "Go FTP Server"
 	s.driverFactory = opts.Factory
 	s.logger = newFtpLogger("")
+	s.hostName = opts.Hostname
 	return s
 }
 
@@ -116,7 +118,7 @@ func (ftpServer *FTPServer) ListenAndServe() error {
 		if err != nil {
 			ftpServer.logger.Print("Error creating driver, aborting client connection")
 		} else {
-			ftpConn := newftpConn(tcpConn, driver)
+			ftpConn := newftpConn(tcpConn, driver, ftpServer.hostName)
 			go ftpConn.Serve()
 		}
 	}
@@ -127,16 +129,16 @@ func buildTcpString(hostname string, port int) (result string) {
 	if strings.Contains(hostname, ":") {
 		// ipv6
 		if port == 0 {
-			result = "["+hostname+"]"
+			result = "[" + hostname + "]"
 		} else {
-			result = "["+hostname +"]:" + strconv.Itoa(port)
+			result = "[" + hostname + "]:" + strconv.Itoa(port)
 		}
 	} else {
 		// ipv4
 		if port == 0 {
 			result = hostname
 		} else {
-			result = hostname +":" + strconv.Itoa(port)
+			result = hostname + ":" + strconv.Itoa(port)
 		}
 	}
 	return

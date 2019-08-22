@@ -179,7 +179,7 @@ func (cmd commandEpsv) RequireAuth() bool {
 }
 
 func (cmd commandEpsv) Execute(conn *ftpConn, param string) {
-	socket, err := newPassiveSocket(conn.logger)
+	socket, err := newPassiveSocket(conn.logger, conn.extra)
 	if err != nil {
 		conn.writeMessage(425, "Data connection failed")
 		return
@@ -203,7 +203,7 @@ func (cmd commandList) RequireAuth() bool {
 
 func (cmd commandList) Execute(conn *ftpConn, param string) {
 	conn.writeMessage(150, "Opening ASCII mode data connection for file list")
-	path  := conn.buildPath(param)
+	path := conn.buildPath(param)
 	files := conn.driver.DirContents(path)
 	formatter := newListFormatter(files)
 	conn.sendOutofbandData(formatter.Detailed())
@@ -340,7 +340,8 @@ func (cmd commandPass) Execute(conn *ftpConn, param string) {
 //
 // The client is requesting us to open a new TCP listing socket and wait for them
 // to connect to it.
-type commandPasv struct{}
+type commandPasv struct {
+}
 
 func (cmd commandPasv) RequireParam() bool {
 	return false
@@ -351,7 +352,7 @@ func (cmd commandPasv) RequireAuth() bool {
 }
 
 func (cmd commandPasv) Execute(conn *ftpConn, param string) {
-	socket, err := newPassiveSocket(conn.logger)
+	socket, err := newPassiveSocket(conn.logger, conn.extra)
 	if err != nil {
 		conn.writeMessage(425, "Data connection failed")
 		return
@@ -362,7 +363,7 @@ func (cmd commandPasv) Execute(conn *ftpConn, param string) {
 
 	quads := strings.Split(socket.Host(), ".")
 	target := fmt.Sprintf("(%s,%s,%s,%s,%d,%d)", quads[0], quads[1], quads[2], quads[3], p1, p2)
-	msg := "Entering Passive Mode "+target
+	msg := "Entering Passive Mode " + target
 	conn.writeMessage(227, msg)
 }
 
@@ -394,7 +395,6 @@ func (cmd commandPort) Execute(conn *ftpConn, param string) {
 	conn.dataConn = socket
 	conn.writeMessage(200, "Connection established ("+strconv.Itoa(port)+")")
 }
-
 
 // commandPwd responds to the PWD FTP command.
 //
@@ -525,7 +525,7 @@ func (cmd commandSize) RequireAuth() bool {
 }
 
 func (cmd commandSize) Execute(conn *ftpConn, param string) {
-	path  := conn.buildPath(param)
+	path := conn.buildPath(param)
 	bytes := conn.driver.Bytes(path)
 	if bytes >= 0 {
 		conn.writeMessage(213, strconv.Itoa(bytes))
@@ -559,12 +559,12 @@ func (cmd commandStor) Execute(conn *ftpConn, param string) {
 		conn.writeMessage(450, "error during transfer")
 		return
 	}
-	tmpFile.Seek(0,0)
+	tmpFile.Seek(0, 0)
 	uploadSuccess := conn.driver.PutFile(targetPath, tmpFile)
 	tmpFile.Close()
 	os.Remove(tmpFile.Name())
 	if uploadSuccess {
-		msg := "OK, received "+strconv.Itoa(int(bytes))+" bytes"
+		msg := "OK, received " + strconv.Itoa(int(bytes)) + " bytes"
 		conn.writeMessage(226, msg)
 	} else {
 		conn.writeMessage(550, "Action not taken")

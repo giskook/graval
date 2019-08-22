@@ -14,7 +14,7 @@
 package main
 
 import (
-	"github.com/yob/graval"
+	"github.com/giskook/graval"
 	"io"
 	"log"
 	"os"
@@ -104,7 +104,7 @@ func (factory *MemDriverFactory) NewDriver() (graval.FTPDriver, error) {
 // it's alive!
 func main() {
 	factory := &MemDriverFactory{}
-	ftpServer := graval.NewFTPServer(&graval.FTPServerOpts{ Factory: factory })
+	ftpServer := graval.NewFTPServer(&graval.FTPServerOpts{Factory: factory})
 	err := ftpServer.ListenAndServe()
 	if err != nil {
 		log.Print(err)

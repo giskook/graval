@@ -29,13 +29,14 @@ type ftpConn struct {
 	reqUser       string
 	user          string
 	renameFrom    string
+	extra         string // for PASV it's host name
 }
 
 // NewftpConn constructs a new object that will handle the FTP protocol over
 // an active net.TCPConn. The TCP connection should already be open before
 // it is handed to this functions. driver is an instance of FTPDriver that
 // will handle all auth and persistence details.
-func newftpConn(tcpConn *net.TCPConn, driver FTPDriver) *ftpConn {
+func newftpConn(tcpConn *net.TCPConn, driver FTPDriver, extra string) *ftpConn {
 	c := new(ftpConn)
 	c.namePrefix = "/"
 	c.conn = tcpConn
@@ -44,6 +45,7 @@ func newftpConn(tcpConn *net.TCPConn, driver FTPDriver) *ftpConn {
 	c.driver = driver
 	c.sessionId = newSessionId()
 	c.logger = newFtpLogger(c.sessionId)
+	c.extra = extra
 	return c
 }
 
