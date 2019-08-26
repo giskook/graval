@@ -64,5 +64,5 @@ type FTPDriver interface {
 	// params  - desination path, an io.Reader containing the file data
 	// returns - length read length
 	//           true if the data was successfully persisted
-	PutFile(string, io.Reader) (int, bool)
+	PutFile(string, io.Reader) (int64, bool)
 }
